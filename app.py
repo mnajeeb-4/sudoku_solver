@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 
 # ----------------------------------------------------------------------
-# 1. CUSTOM CSS – Glassmorphism Design
+# 1. CUSTOM CSS – Glassmorphism Design with Perfect Contrast
 # ----------------------------------------------------------------------
 st.markdown("""
 <style>
@@ -24,23 +24,28 @@ st.markdown("""
         margin: 1rem 0;
     }
 
-    /* Input fields – transparent with glass effect */
+    /* INPUT FIELDS - FIXED FOR VISIBILITY */
     .stNumberInput input {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        color: #fff !important;
+        background-color: #ffffff !important; /* Pure white background */
+        color: #000000 !important;             /* BLACK text for perfect readability */
+        border: 2px solid #4a4a6a !important;  /* Dark border to stand out */
         border-radius: 10px !important;
         text-align: center !important;
-        font-size: 1.1rem !important;
-        padding: 0.2rem 0 !important;
-        width: 50px !important;
-        height: 50px !important;
+        font-size: 1.4rem !important;
+        font-weight: bold !important;
+        padding: 0 !important;
+        width: 60px !important;
+        height: 60px !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+        margin: 2px !important;
     }
 
+    /* Input focus state */
     .stNumberInput input:focus {
-        border: 1px solid #6c63ff !important;
-        box-shadow: 0 0 10px rgba(108, 99, 255, 0.5) !important;
-        background: rgba(255, 255, 255, 0.15) !important;
+        border: 2px solid #6c63ff !important;
+        box-shadow: 0 0 15px rgba(108, 99, 255, 0.7) !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
     }
 
     /* Buttons */
@@ -152,7 +157,6 @@ def main():
 
     # Input grid – 9 rows, 9 columns
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    cols = st.columns(9)
     for row in range(9):
         row_cols = st.columns(9)
         for col in range(9):
@@ -175,7 +179,7 @@ def main():
     with col1:
         if st.button("🧹 Clear Board"):
             st.session_state.board = np.zeros((9, 9), dtype=int)
-            st.rerun()  # <-- FIXED (was st.experimental_rerun())
+            st.rerun()
     with col2:
         if st.button("📥 Load Sample"):
             sample = np.array([
@@ -190,7 +194,7 @@ def main():
                 [0, 8, 7, 6, 0, 4, 0, 0, 3]
             ])
             st.session_state.board = sample
-            st.rerun()  # <-- FIXED (was st.experimental_rerun())
+            st.rerun()
     with col3:
         solve_clicked = st.button("🚀 Solve")
 
@@ -203,23 +207,30 @@ def main():
         else:
             if solve_sudoku(board):
                 st.session_state.board = board
-                st.success("✅ Puzzle solved successfully! (Matches the 'ANSWER' image)")
+                st.success("✅ Puzzle solved successfully!")
             else:
                 st.error("❌ No solution exists for this puzzle.")
 
-    # Display the solved board (always show current state)
+    # Display the solved board
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.subheader("Current Board")
-    # Render as a nice table
+    
+    # Render as a table with black text on white background
     for row in range(9):
         cols = st.columns(9)
         for col in range(9):
             val = st.session_state.board[row, col]
             with cols[col]:
                 if val == 0:
-                    st.markdown("⬜")
+                    st.markdown(
+                        '<div style="background-color: #ffffff; color: #000000; border-radius: 8px; padding: 10px 0; text-align: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"> </div>',
+                        unsafe_allow_html=True
+                    )
                 else:
-                    st.markdown(f"**{val}**")
+                    st.markdown(
+                        f'<div style="background-color: #ffffff; color: #000000; border-radius: 8px; padding: 10px 0; text-align: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{val}</div>',
+                        unsafe_allow_html=True
+                    )
     st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
