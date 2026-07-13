@@ -1,9 +1,9 @@
 import streamlit as st
 import numpy as np
 
-# ----------------------------------------------------------------------
-# 1. CUSTOM CSS – Glassmorphism Design with Perfect Contrast
-# ----------------------------------------------------------------------
+
+# 1. CUSTOM CSS – Glassmorphism Design with Perfect Visibility
+
 st.markdown("""
 <style>
     /* Global background */
@@ -40,7 +40,6 @@ st.markdown("""
         margin: 2px !important;
     }
 
-    /* Input focus state */
     .stNumberInput input:focus {
         border: 2px solid #6c63ff !important;
         box-shadow: 0 0 15px rgba(108, 99, 255, 0.7) !important;
@@ -72,30 +71,18 @@ st.markdown("""
         color: #fff !important;
         text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
-
-    /* Success / error messages */
-    .stAlert {
-        border-radius: 15px !important;
-        backdrop-filter: blur(4px) !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
-# ----------------------------------------------------------------------
+
 # 2. SUDOKU LOGIC FUNCTIONS
-# ----------------------------------------------------------------------
+
 def is_valid(board: np.ndarray, row: int, col: int, num: int) -> bool:
     """Check if placing 'num' at (row, col) is valid."""
-    # Row check
-    if num in board[row, :]:
-        return False
-    # Column check
-    if num in board[:, col]:
-        return False
-    # 3x3 box check
+    if num in board[row, :]: return False
+    if num in board[:, col]: return False
     box_row, box_col = (row // 3) * 3, (col // 3) * 3
-    if num in board[box_row:box_row+3, box_col:box_col+3]:
-        return False
+    if num in board[box_row:box_row+3, box_col:box_col+3]: return False
     return True
 
 def solve_sudoku(board: np.ndarray) -> bool:
@@ -106,20 +93,17 @@ def solve_sudoku(board: np.ndarray) -> bool:
                 for num in range(1, 10):
                     if is_valid(board, row, col, num):
                         board[row, col] = num
-                        if solve_sudoku(board):
-                            return True
-                        board[row, col] = 0  # backtrack
+                        if solve_sudoku(board): return True
+                        board[row, col] = 0
                 return False
     return True
 
 def is_board_valid(board: np.ndarray) -> bool:
-    """Check if the initial board has no conflicts (ignoring zeros)."""
+    """Check if the initial board has no conflicts."""
     for row in range(9):
         for col in range(9):
             val = board[row, col]
-            if val == 0:
-                continue
-            # Temporarily set to 0 to avoid self-conflict
+            if val == 0: continue
             board[row, col] = 0
             if not is_valid(board, row, col, val):
                 board[row, col] = val
@@ -127,21 +111,41 @@ def is_board_valid(board: np.ndarray) -> bool:
             board[row, col] = val
     return True
 
-# ----------------------------------------------------------------------
-# 3. STREAMLIT APP
-# ----------------------------------------------------------------------
+
+# 3. HELPER FUNCTION TO RENDER THE SUDOKU GRID PROPERLY
+
+def render_board_html(board):
+    """Generates HTML for a clean 9x9 Sudoku grid with 3x3 box borders."""
+    html = '<div style="display: grid; grid-template-columns: repeat(9, 55px); gap: 2px; background-color: #2b2b44; padding: 4px; border-radius: 12px; margin: 0 auto; width: fit-content;">'
+    
+    for r in range(9):
+        for c in range(9):
+            val = board[r, c]
+            
+            # Default thin border
+            border_style = 'border: 1px solid #d1d5db;'
+            
+            # Thick border on right (end of 3x3 box: columns 2 and 5)
+            if c in [2, 5]:
+                border_style = 'border: 1px solid #d1d5db; border-right: 4px solid #2b2b44;'
+            # Thick border on bottom (end of 3x3 box: rows 2 and 5)
+            if r in [2, 5]:
+                border_style = 'border: 1px solid #d1d5db; border-bottom: 4px solid #2b2b44;'
+            # If both, combine them
+            if c in [2, 5] and r in [2, 5]:
+                border_style = 'border: 1px solid #d1d5db; border-right: 4px solid #2b2b44; border-bottom: 4px solid #2b2b44;'
+                
+            html += f'<div style="background: #ffffff; color: #000000; font-weight: bold; font-size: 1.4rem; display: flex; justify-content: center; align-items: center; aspect-ratio: 1 / 1; {border_style};">{val if val != 0 else ""}</div>'
+    html += '</div>'
+    return html
+
 def main():
     st.title("🧩 Glass Sudoku Solver")
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    st.markdown("""
-    Enter the puzzle below. Use **0** for empty cells.  
-    Click **Solve** to get the answer.
-    """)
+    st.markdown("Enter the puzzle below. Use **0** for empty cells. Click **Solve** to get the answer.")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Initialize session state for the board
     if "board" not in st.session_state:
-        # Default sample puzzle matching the SUDOKU image exactly
         sample = np.array([
             [8, 0, 6, 0, 3, 0, 0, 9, 0],
             [0, 4, 0, 0, 1, 0, 0, 6, 8],
@@ -170,7 +174,6 @@ def main():
                     key=f"cell_{row}_{col}",
                     label_visibility="collapsed"
                 )
-                # Update session state board (key is updated on change)
                 st.session_state.board[row, col] = val
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -201,9 +204,8 @@ def main():
     # Solving logic
     if solve_clicked:
         board = st.session_state.board.copy()
-        # Check validity of initial puzzle
         if not is_board_valid(board):
-            st.error("❌ The puzzle contains conflicts (duplicate numbers in a row/column/box). Please fix it.")
+            st.error("❌ The puzzle contains conflicts. Please fix it.")
         else:
             if solve_sudoku(board):
                 st.session_state.board = board
@@ -211,26 +213,16 @@ def main():
             else:
                 st.error("❌ No solution exists for this puzzle.")
 
-    # Display the solved board
+    # --- UPDATED DISPLAY SECTION ---
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     st.subheader("Current Board")
+    st.markdown(
+        "*(Now visually separated into 3x3 blocks, just like a real Sudoku puzzle!)*"
+    )
     
-    # Render as a table with black text on white background
-    for row in range(9):
-        cols = st.columns(9)
-        for col in range(9):
-            val = st.session_state.board[row, col]
-            with cols[col]:
-                if val == 0:
-                    st.markdown(
-                        '<div style="background-color: #ffffff; color: #000000; border-radius: 8px; padding: 10px 0; text-align: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"> </div>',
-                        unsafe_allow_html=True
-                    )
-                else:
-                    st.markdown(
-                        f'<div style="background-color: #ffffff; color: #000000; border-radius: 8px; padding: 10px 0; text-align: center; font-weight: bold; font-size: 1.2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">{val}</div>',
-                        unsafe_allow_html=True
-                    )
+    # Render the grid with thick 3x3 borders
+    grid_html = render_board_html(st.session_state.board)
+    st.markdown(grid_html, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
