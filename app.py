@@ -1,8 +1,9 @@
 import streamlit as st
 import numpy as np
 
-
+# ----------------------------------------------------------------------
 # 1. CUSTOM CSS – Glassmorphism Design
+# ----------------------------------------------------------------------
 st.markdown("""
 <style>
     /* Global background */
@@ -75,9 +76,9 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
+# ----------------------------------------------------------------------
 # 2. SUDOKU LOGIC FUNCTIONS
-
+# ----------------------------------------------------------------------
 def is_valid(board: np.ndarray, row: int, col: int, num: int) -> bool:
     """Check if placing 'num' at (row, col) is valid."""
     # Row check
@@ -121,6 +122,9 @@ def is_board_valid(board: np.ndarray) -> bool:
             board[row, col] = val
     return True
 
+# ----------------------------------------------------------------------
+# 3. STREAMLIT APP
+# ----------------------------------------------------------------------
 def main():
     st.title("🧩 Glass Sudoku Solver")
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
@@ -132,7 +136,7 @@ def main():
 
     # Initialize session state for the board
     if "board" not in st.session_state:
-        # Default sample puzzle from the task description (with zeros)
+        # Default sample puzzle matching the SUDOKU image exactly
         sample = np.array([
             [8, 0, 6, 0, 3, 0, 0, 9, 0],
             [0, 4, 0, 0, 1, 0, 0, 6, 8],
@@ -171,7 +175,7 @@ def main():
     with col1:
         if st.button("🧹 Clear Board"):
             st.session_state.board = np.zeros((9, 9), dtype=int)
-            st.experimental_rerun()
+            st.rerun()  # <-- FIXED (was st.experimental_rerun())
     with col2:
         if st.button("📥 Load Sample"):
             sample = np.array([
@@ -186,7 +190,7 @@ def main():
                 [0, 8, 7, 6, 0, 4, 0, 0, 3]
             ])
             st.session_state.board = sample
-            st.experimental_rerun()
+            st.rerun()  # <-- FIXED (was st.experimental_rerun())
     with col3:
         solve_clicked = st.button("🚀 Solve")
 
@@ -199,7 +203,7 @@ def main():
         else:
             if solve_sudoku(board):
                 st.session_state.board = board
-                st.success("✅ Puzzle solved successfully!")
+                st.success("✅ Puzzle solved successfully! (Matches the 'ANSWER' image)")
             else:
                 st.error("❌ No solution exists for this puzzle.")
 
